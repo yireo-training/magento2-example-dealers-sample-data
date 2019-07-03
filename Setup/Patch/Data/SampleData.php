@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Yireo\ExampleDealersSampleData\Setup\Patch\Data;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\Patch\PatchRevertableInterface;
 use Yireo\ExampleDealers\Api\DealerRepositoryInterface;
@@ -20,13 +21,21 @@ class SampleData implements DataPatchInterface, PatchRevertableInterface
     private $dealerRepository;
 
     /**
+     * @var ModuleDataSetupInterface
+     */
+    private $moduleDataSetup;
+
+    /**
      * SampleData constructor.
      * @param DealerRepositoryInterface $dealerRepository
+     * @param ModuleDataSetupInterface $moduleDataSetup
      */
     public function __construct(
-        DealerRepositoryInterface $dealerRepository
+        DealerRepositoryInterface $dealerRepository,
+        ModuleDataSetupInterface $moduleDataSetup
     ) {
         $this->dealerRepository = $dealerRepository;
+        $this->moduleDataSetup = $moduleDataSetup;
     }
 
     /**
@@ -52,12 +61,16 @@ class SampleData implements DataPatchInterface, PatchRevertableInterface
      */
     public function apply()
     {
+        $this->moduleDataSetup->getConnection()->startSetup();
+
         foreach ($this->getSampleData() as $sample) {
             $dealer = $this->dealerRepository->getEmpty();
             $dealer->setName($sample['name']);
             $dealer->setAddress($sample['address']);
             $this->dealerRepository->save($dealer);
         }
+
+        $this->moduleDataSetup->getConnection()->endSetup();
     }
 
     /**
@@ -65,6 +78,8 @@ class SampleData implements DataPatchInterface, PatchRevertableInterface
      */
     public function revert()
     {
+        $this->moduleDataSetup->getConnection()->startSetup();
+
         foreach ($this->getSampleData() as $sample) {
             /** @var SearchCriteriaBuilder $searchCriteriaBuilder */
             $searchCriteriaBuilder = $this->dealerRepository->getSearchCriteriaBuilder();
@@ -76,6 +91,8 @@ class SampleData implements DataPatchInterface, PatchRevertableInterface
                 $this->dealerRepository->delete($item);
             }
         }
+
+        $this->moduleDataSetup->getConnection()->endSetup();
     }
 
     /**
