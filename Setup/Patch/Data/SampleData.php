@@ -1,8 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Yireo\ExampleDealersSampleData\Setup\Patch\Data;
 
+use joshtronic\LoremIpsum;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
@@ -26,16 +28,24 @@ class SampleData implements DataPatchInterface, PatchRevertableInterface
     private $moduleDataSetup;
 
     /**
+     * @var LoremIpsum
+     */
+    private $loremIpsum;
+
+    /**
      * SampleData constructor.
      * @param DealerRepositoryInterface $dealerRepository
      * @param ModuleDataSetupInterface $moduleDataSetup
+     * @param LoremIpsum $loremIpsum
      */
     public function __construct(
         DealerRepositoryInterface $dealerRepository,
-        ModuleDataSetupInterface $moduleDataSetup
+        ModuleDataSetupInterface $moduleDataSetup,
+        LoremIpsum $loremIpsum
     ) {
         $this->dealerRepository = $dealerRepository;
         $this->moduleDataSetup = $moduleDataSetup;
+        $this->loremIpsum = $loremIpsum;
     }
 
     /**
@@ -67,6 +77,7 @@ class SampleData implements DataPatchInterface, PatchRevertableInterface
             $dealer = $this->dealerRepository->getEmpty();
             $dealer->setName($sample['name']);
             $dealer->setAddress($sample['address']);
+            $dealer->setDescription($this->loremIpsum->paragraph(3));
             $this->dealerRepository->save($dealer);
         }
 
@@ -83,8 +94,7 @@ class SampleData implements DataPatchInterface, PatchRevertableInterface
         foreach ($this->getSampleData() as $sample) {
             /** @var SearchCriteriaBuilder $searchCriteriaBuilder */
             $searchCriteriaBuilder = $this->dealerRepository->getSearchCriteriaBuilder();
-            $searchCriteriaBuilder->addFilter('name', $sample['name']);
-            $searchCriteriaBuilder->addFilter('address', $sample['address']);
+            $searchCriteriaBuilder->addFilter('id', $sample['id']);
             $searchCriteria = $searchCriteriaBuilder->create();
             $items = $this->dealerRepository->getItems($searchCriteria);
             foreach ($items as $item) {

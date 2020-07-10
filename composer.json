@@ -16,6 +16,7 @@
   ],
   "require": {
     "magento/framework": "*",
+    "joshtronic/php-loremipsum": "^1.0",
     "php": ">=7.0.0"
   },
   "require-dev": {
